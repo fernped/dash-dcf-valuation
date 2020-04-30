@@ -29,6 +29,9 @@ server = app.server
 # SIDEBAR ----
 percent_marks = {i*20: {'label': f"{i*20}"} for i in range(6)}
 sidebar = html.Div([
+    html.Label('Forecast horizon (year)'),
+    dcc.Slider(id='horizon', min=1, max=20, value=10, step=1,
+        marks={i*5: {'label': f"{i*5}"} for i in range(5)}),
     html.Label('Revenue (base year)'),
     dcc.Input(id='base_revenue', type='number', value=623, className='form-control'),
     html.Label('Adjusted EBIT (base year)'),
@@ -98,13 +101,13 @@ app.layout = html.Div([
 # CALLBACKS ----
 @app.callback(
     [Output('forecast_data', 'children')],
-    [Input(id, 'value') for id in ['base_revenue', 'base_ebit', 'taxrate',
-                                   'st_cagr', 'lt_cagr', 'lt_margin',
+    [Input(id, 'value') for id in ['horizon', 'base_revenue', 'base_ebit',
+                                   'taxrate', 'st_cagr', 'lt_cagr', 'lt_margin',
                                    'reinvest_ratio']])
-def update_forecast(base_revenue, base_ebit, taxrate, st_cagr, lt_cagr,
+def update_forecast(horizon, base_revenue, base_ebit, taxrate, st_cagr, lt_cagr,
         lt_margin, reinvest_ratio):
-    n_per = 10
-    conv_per = 5
+    n_per = horizon
+    conv_per = int(horizon / 2)
     # Initialize dataframe
     per_id = np.arange(n_per)+1
     year = int(datetime.date.today().year) + per_id
