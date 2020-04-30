@@ -8,12 +8,12 @@ dash-table==4.6.2
 Flask==1.1.2
 Flask-Compress==1.5.0
 future==0.18.2
+gunicorn==20.0.4
 itsdangerous==1.1.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 numpy==1.18.3
 pandas==1.0.3
-pkg-resources==0.0.0
 plotly==4.6.0
 python-dateutil==2.8.1
 pytz==2020.1
