@@ -50,7 +50,7 @@ def gen_grid(items, gridClass='', colClass='', rowClass=''):
 
 
 
-def gen_card(text, id=None, title='', cardClass='', 
+def gen_card(text, id=None, title='', cardClass='border-light', 
              textClass='text-center', titleClass='text-center'):
     return html.Div([
         html.Div([
