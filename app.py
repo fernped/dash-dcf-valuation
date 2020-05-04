@@ -145,6 +145,22 @@ def update_forecast(horizon, base_revenue, base_ebit, taxrate, st_cagr, lt_cagr,
     return [df.to_json(date_format='iso', orient='split')]
 
 
+def npv(wacc, cashflows, perp_growth=0):
+    N = len(cashflows)
+    # Repeat WACC as a series
+    wacc_series = np.repeat(wacc, N)
+    # Calculate discount factor
+    discount_factor = np.cumprod(1 / (1+wacc_series/100))
+    # Calculate PV of cash flows
+    pv_cf = np.sum(np.array(cashflows) * discount_factor)
+    # Calculate terminal value
+    terminal_cashflow = cashflows[N - 1] * (1 + perp_growth/100)
+    terminal_value = terminal_cashflow / ((wacc-perp_growth) / 100)
+    # PV of Terminal Value
+    pv_terminal_value = terminal_value * discount_factor[N - 1]
+    # Return PV of Cash Flows + PV of Terminal Value
+    return pv_cf + pv_terminal_value
+
 
 @app.callback(
     [Output('firm_value_card', 'children'),
@@ -157,17 +173,7 @@ def update_forecast(horizon, base_revenue, base_ebit, taxrate, st_cagr, lt_cagr,
      Input('numshares', 'value')])
 def update_cards(data, wacc, lt_cagr, netdebt, numshares):
     df = pd.read_json(data, orient='split')
-    # Calculate discount factor $1 / (1 + r)^t$
-    df['WACC'] = wacc
-    df['DiscountFactor'] = np.cumprod(1 / (1 + df['WACC']/100))
-    # Calculate discounted cash flow
-    df['DCF'] = df['DiscountFactor'] * df['Free Cash Flow']
-    # Calculate terminal value as $CF_T * (1+g_T) / (r - g_T)$
-    terminal_value = df['Free Cash Flow'].tail(1) * (1 + lt_cagr/100) / ((wacc-lt_cagr)/100)
-    # Calculate present value of terminal value
-    pv_terminal_value = terminal_value * df['DiscountFactor'].tail(1)
-    # Calculate firm value as sum of discounted cash flow + pv of terminal value
-    firm_value = df['DCF'].sum() + pv_terminal_value
+    firm_value = npv(wacc, df['Free Cash Flow'], lt_cagr)
     # Calculate equity value as firm value minus net debt and adjustments
     equity_value = firm_value - netdebt
     # Calculate value per share
