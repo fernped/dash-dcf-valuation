@@ -81,7 +81,8 @@ table = dash_table.DataTable(id='forecast_table', data=[], columns=[],
 grid = gen_grid([
     [gen_card('', 'firm_value_card','Firm Value'),
      gen_card('', 'equity_value_card','Equity Value'),
-     gen_card('', 'value_pershare_card','Value per Share')],
+     gen_card('', 'value_pershare_card','Value per Share'),
+     gen_card('', 'implicit_irr', 'Implicit IRR')],
     [table],
     [dcc.Graph(id='table_plot'),
      dcc.Graph(id='npv_plot')]
@@ -152,22 +153,28 @@ def update_forecast(horizon, base_revenue, base_ebit, taxrate, st_cagr, lt_cagr,
 @app.callback(
     [Output('firm_value_card', 'children'),
      Output('equity_value_card', 'children'),
-     Output('value_pershare_card', 'children')],
+     Output('value_pershare_card', 'children'),
+     Output('implicit_irr', 'children')],
     [Input('forecast_data', 'children'),
      Input('wacc', 'value'),
      Input('lt_cagr', 'value'),
      Input('netdebt', 'value'),
-     Input('numshares', 'value')])
-def update_cards(data, wacc, lt_cagr, netdebt, numshares):
+     Input('numshares', 'value'),
+     Input('current_price', 'value')])
+def update_cards(data, wacc, lt_cagr, netdebt, numshares, current_price):
     df = pd.read_json(data, orient='split')
-    firm_value = npv(wacc, df['Free Cash Flow'], lt_cagr)
+    cashflows = df['Free Cash Flow']
+    firm_value = npv(wacc, cashflows, lt_cagr)
     # Calculate equity value as firm value minus net debt and adjustments
     equity_value = firm_value - netdebt
     # Calculate value per share
     value_pershare = equity_value / numshares
+    # Calculate implicit IRR
+    mkt_cap = numshares * current_price
+    implicit_irr = irr(cashflows, mkt_cap + netdebt, lt_cagr)
     # Return
     return round(firm_value, 0), round(equity_value, 0), \
-        round(value_pershare, 2)
+        round(value_pershare, 2), round(implicit_irr, 2)
 
 
 numeric_fmt = Format(precision=1, 

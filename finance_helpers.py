@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy import optimize
 
 
 def npv(wacc, cashflows, perp_growth=0):
@@ -19,3 +19,7 @@ def npv(wacc, cashflows, perp_growth=0):
     return pv_cf + pv_terminal_value
 
 
+def irr(cashflows, investment=0, perp_growth=0):
+    x = optimize.fsolve(
+        lambda x: (npv(x, cashflows, perp_growth) - investment), perp_growth+1)[0]
+    return x
