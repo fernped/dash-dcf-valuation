@@ -60,6 +60,8 @@ sidebar = html.Div([
     dcc.Input(id='netdebt', type='number', value=738, className='form-control'),
     html.Label('Number of shares outstanding'),
     dcc.Input(id='numshares', type='number', value=276, className='form-control'),
+    html.Label('Current share price'),
+    dcc.Input(id='current_price', type='number', value=113.75, className='form-control')
 ])
 
 
@@ -227,8 +229,9 @@ def update_plot(row_ids, data):
      Input('wacc', 'value'),
      Input('lt_cagr', 'value'),
      Input('netdebt', 'value'),
-     Input('numshares', 'value')])
-def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares):
+     Input('numshares', 'value'),
+     Input('current_price', 'value')])
+def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares, current_price):
     df = pd.read_json(data, orient='split')
     cfs = df['Free Cash Flow']
     # Create WACC vector
@@ -242,7 +245,10 @@ def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares):
         'data': [{'x':waccs, 'y':share_prices, 'name':'Share Price'},
                  {'type':'lines', 'name': 'WACC',
                   'x':[wacc,wacc],
-                  'y':[share_prices.min(),share_prices.max()]}],
+                  'y':[share_prices.min(),share_prices.max()]},
+                 {'name': 'Current Price',
+                  'x':[waccs.min(), waccs.max()],
+                  'y':[current_price, current_price]}],
         'layout': {'title': 'Share Price x WACC'}
     }
 
