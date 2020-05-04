@@ -227,7 +227,10 @@ def update_plot(row_ids, data):
     title = 'Forecasts'
     if len(row_ids) == 1:
         title = colname + ' ' + title
-    return {'data': plot_data, 'layout':{'title':title}}
+    return {'data': plot_data,
+            'layout':{'title':title,
+                      'showlegend': 'true',
+                      'legend': {"orientation": "h"}}}
 
 # ----
 @app.callback(
@@ -250,13 +253,15 @@ def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares, current_price):
     # Return Plot data
     return {
         'data': [{'x':waccs, 'y':share_prices, 'name':'Share Price'},
-                 {'type':'lines', 'name': 'WACC',
+                 {'mode':'lines', 'name': 'WACC',
                   'x':[wacc,wacc],
                   'y':[share_prices.min(),share_prices.max()]},
-                 {'name': 'Current Price',
+                 {'mode':'lines', 'name': 'Current Price',
                   'x':[waccs.min(), waccs.max()],
                   'y':[current_price, current_price]}],
-        'layout': {'title': 'Share Price x WACC'}
+        'layout': {'title': 'Share Price x WACC',
+                   'showlegend': 'true',
+                   'legend': {"orientation": "h"}}
     }
 
 
