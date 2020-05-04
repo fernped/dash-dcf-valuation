@@ -80,7 +80,8 @@ grid = gen_grid([
      gen_card('', 'equity_value_card','Equity Value'),
      gen_card('', 'value_pershare_card','Value per Share')],
     [table],
-    [dcc.Graph(id='table_plot')]
+    [dcc.Graph(id='table_plot'),
+     dcc.Graph(id='npv_plot')]
 ])
 
 
@@ -236,6 +237,30 @@ def update_plot(row_ids, data):
     return {'data': plot_data, 'layout':{'title':title}}
 
 # ----
+@app.callback(
+    Output('npv_plot', 'figure'),
+    [Input('forecast_data', 'children'),
+     Input('wacc', 'value'),
+     Input('lt_cagr', 'value'),
+     Input('netdebt', 'value'),
+     Input('numshares', 'value')])
+def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares):
+    df = pd.read_json(data, orient='split')
+    cfs = df['Free Cash Flow']
+    # Create WACC vector
+    waccs = np.arange(lt_cagr+1, wacc*2+1, 1)
+    # Calculate firm value for each WACC
+    firm_values = np.array([npv(r, cfs, lt_cagr) for r in waccs])
+    # Calculate share price
+    share_prices = (firm_values - netdebt) / numshares
+    # Return Plot data
+    return {
+        'data': [{'x':waccs, 'y':share_prices, 'name':'Share Price'},
+                 {'type':'lines', 'name': 'WACC',
+                  'x':[wacc,wacc],
+                  'y':[share_prices.min(),share_prices.max()]}],
+        'layout': {'title': 'Share Price x WACC'}
+    }
 
 
 # ----
