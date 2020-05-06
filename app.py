@@ -245,7 +245,7 @@ def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares, current_price):
     df = pd.read_json(data, orient='split')
     cfs = df['Free Cash Flow']
     # Create WACC vector
-    waccs = np.arange(lt_cagr+1, wacc*2+1, 1)
+    waccs = np.arange(lt_cagr+1, wacc*2+1, .1)
     # Calculate firm value for each WACC
     firm_values = np.array([npv(r, cfs, lt_cagr) for r in waccs])
     # Calculate share price
