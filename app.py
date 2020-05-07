@@ -13,6 +13,10 @@ from layout_helpers import *
 from finance_helpers import *
 
 
+#
+plotly_margin = dict(l=30, r=20, t=40, b=20)
+
+
 # APP INITIALIZATION
 app = dash.Dash(
     __name__,
@@ -230,6 +234,7 @@ def update_plot(row_ids, data):
     return {'data': plot_data,
             'layout':{'title':title,
                       'showlegend': 'true',
+                      'margin': plotly_margin,
                       'legend': {"orientation": "h"}}}
 
 # ----
@@ -261,6 +266,7 @@ def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares, current_price):
                   'y':[current_price, current_price]}],
         'layout': {'title': 'Share Price x WACC',
                    'showlegend': 'true',
+                   'margin': plotly_margin,
                    'legend': {"orientation": "h"}}
     }
 
