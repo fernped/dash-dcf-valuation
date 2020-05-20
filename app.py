@@ -15,6 +15,7 @@ from finance_helpers import *
 
 #
 plotly_margin = dict(l=30, r=20, t=40, b=20)
+slider_tooptip = { 'always_visible': True, 'placement': 'right' }
 
 
 # APP INITIALIZATION
@@ -36,30 +37,37 @@ percent_marks = {i*20: {'label': f"{i*20}"} for i in range(6)}
 sidebar = html.Div([
     html.Label('Forecast horizon (year)'),
     dcc.Slider(id='horizon', min=1, max=20, value=10, step=1,
-        marks={i*5: {'label': f"{i*5}"} for i in range(5)}),
+        marks={i*5: {'label': f"{i*5}"} for i in range(5)},
+        tooltip=slider_tooptip),
     html.Label('Revenue (base year)'),
     dcc.Input(id='base_revenue', type='number', value=623, className='form-control'),
     html.Label('Adjusted EBIT (base year)'),
     dcc.Input(id='base_ebit', type='number', value=61, className='form-control'),
     html.Label('Tax Rate (%)'),
     dcc.Slider(id='taxrate', min=0, max=100, value=25, step=1,
-        marks=percent_marks),
+        marks=percent_marks,
+        tooltip=slider_tooptip),
     html.Label('Short-term revenue CAGR (%)'),
     dcc.Slider(id='st_cagr', min=0, max=100, value=50, step=1,
-        marks=percent_marks),
+        marks=percent_marks,
+        tooltip=slider_tooptip),
     html.Label('Long-term revenue CAGR (%)'),
     dcc.Slider(id='lt_cagr', min=0, max=100, value=1, step=1,
-        marks=percent_marks),
+        marks=percent_marks,
+        tooltip=slider_tooptip),
     html.Label('Long-term EBIT margin (%)'),
     dcc.Slider(id='lt_margin', min=0, max=100, value=22, step=1,
-        marks=percent_marks),
+        marks=percent_marks,
+        tooltip=slider_tooptip),
     html.Label('Reinvestment sales to capital ratio'),
     dcc.Slider(id='reinvest_ratio', min=0, max=10, value=2.5, step=0.1,
-        marks={i: {'label': f"{i}"} for i in range(11)}),
+        marks={i: {'label': f"{i}"} for i in range(11)},
+        tooltip=slider_tooptip),
 
     html.Label('WACC (%)'),
     dcc.Slider(id='wacc', min=0, max=100, value=7.7, step=0.1,
-        marks=percent_marks),
+        marks=percent_marks,
+        tooltip=slider_tooptip),
     html.Label('Net Debt and value adjustments'),
     dcc.Input(id='netdebt', type='number', value=738, className='form-control'),
     html.Label('Number of shares outstanding'),
