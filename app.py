@@ -9,12 +9,25 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, ALL
 import dash_table
 from dash_table.Format import Format, Scheme, Sign
+import plotly.graph_objects as go
+import plotly.express as px
+import plotly.io as pio
+
 from layout_helpers import *
 from finance_helpers import *
 
 
 #
-plotly_margin = dict(l=30, r=20, t=40, b=20)
+pio.templates["custom"] = go.layout.Template(
+    layout=go.Layout(
+        margin=dict(l=50, r=20, t=40, b=20),
+        legend=dict(orientation='h'),
+        colorway=["#E69F00", "#56B4E9", "#009E73", "#F0E442", 
+                  "#0072B2", "#D55E00", "#CC79A7", "#999999"]
+    )
+)
+pio.templates.default = 'plotly_white+custom'
+
 slider_tooptip = { 'always_visible': True, 'placement': 'right' }
 
 
@@ -215,35 +228,19 @@ def update_plot(row_ids, data):
         row_ids = [3,8]
     # Read data
     df = pd.read_json(data, orient='split')
-    # X axis is the same 
-    x = pd.to_numeric(df['Year'])
-    # Initialize plot array
-    plot_data = []
-    # For each selected row
-    for row_id in row_ids:
-        # Get variable name
-        colname = df.columns[row_id+1]
-        # Locate apropriate variable
-        y = df.iloc[:,row_id+1]
-        # Invert sign for expense columns
-        if colname == 'Taxes' or colname == 'Opex' or colname == 'Reinvestment':
-            y = - y
-        # Use line for relative values and bars for absolute values
-        if colname == 'Margin' or colname == 'Growth' or colname == 'ROIC':
-            plot_type = 'lines+markers'
-        else:
-            plot_type = 'bar'
-        # Append to plot data
-        plot_data.append({'x': x, 'y': y, 'name': colname, 'type':plot_type})
+
+    #
+    colnames = df.columns[np.array(row_ids) + 1]
+    #
+    df = df.set_index('Year')[colnames].reset_index().melt('Year')
+
     # Display variable name if only one selected
     title = 'Forecasts'
     if len(row_ids) == 1:
-        title = colname + ' ' + title
-    return {'data': plot_data,
-            'layout':{'title':title,
-                      'showlegend': 'true',
-                      'margin': plotly_margin,
-                      'legend': {"orientation": "h"}}}
+        title = colnames[0] + ' ' + title
+    return px.bar(df, barmode='group', title=title,
+        x='Year', y='value', color='variable',
+        labels={'Year':'','value':'', 'variable':''})
 
 # ----
 @app.callback(
@@ -263,20 +260,18 @@ def update_npv_plot(data, wacc, lt_cagr, netdebt, numshares, current_price):
     firm_values = np.array([npv(r, cfs, lt_cagr) for r in waccs])
     # Calculate share price
     share_prices = (firm_values - netdebt) / numshares
+    # Build plot
+    line_style = dict(color='#999999', dash='dot')
+    fig = px.line(title='Share Price x WACC', x=waccs, y=share_prices,
+        labels={'x':'WACC','y':'Share Price'})
+    fig.add_shape(type='line', line=line_style,
+        x0=wacc, y0=share_prices.min(),
+        x1=wacc, y1=share_prices.max())
+    fig.add_shape(type='line', line=line_style,
+        x0=waccs.min(), y0=current_price,
+        x1=waccs.max(), y1=current_price)
     # Return Plot data
-    return {
-        'data': [{'x':waccs, 'y':share_prices, 'name':'Share Price'},
-                 {'mode':'lines', 'name': 'WACC',
-                  'x':[wacc,wacc],
-                  'y':[share_prices.min(),share_prices.max()]},
-                 {'mode':'lines', 'name': 'Current Price',
-                  'x':[waccs.min(), waccs.max()],
-                  'y':[current_price, current_price]}],
-        'layout': {'title': 'Share Price x WACC',
-                   'showlegend': 'true',
-                   'margin': plotly_margin,
-                   'legend': {"orientation": "h"}}
-    }
+    return fig
 
 
 # ----
