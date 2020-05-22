@@ -238,9 +238,11 @@ def update_plot(row_ids, data):
     title = 'Forecasts'
     if len(row_ids) == 1:
         title = colnames[0] + ' ' + title
-    return px.bar(df, barmode='group', title=title,
+    fig = px.bar(df, barmode='group', title=title,
         x='Year', y='value', color='variable',
         labels={'Year':'','value':'', 'variable':''})
+    fig.update_traces(texttemplate='%{y:.2s}', textposition='outside')
+    return fig
 
 # ----
 @app.callback(
